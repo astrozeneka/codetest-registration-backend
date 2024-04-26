@@ -1,3 +1,4 @@
+import sqlite3
 from http.client import HTTPException
 from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
@@ -6,6 +7,8 @@ from pydantic import BaseModel
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
+import os
+from ApplicationDataManager import ApplicationDataManager
 
 
 SECRET_KEY = "7ce3d09fb5e0eaa0c3e6769930c310ae0cc34276545a761c3fdc923aa04beca5"
@@ -108,9 +111,15 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
+## DATABASE AND DATA MANAGEMENT
+conn = sqlite3.connect(os.getenv('DB_PATH') or 'db.sqlite3')
+applicationDataManager = ApplicationDataManager(conn)
+
 @app.get("/")
 def read_root():
-    return {"message": "Hello world "}
+    # Testing to retrieve user list from the database
+    applications = applicationDataManager.getCollection()
+    return applications
 
 # A route to exchange username and password for an access token
 @app.post("/token")
