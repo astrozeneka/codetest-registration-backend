@@ -143,3 +143,9 @@ async def login_for_access_token(
 @app.get("/users/current")
 async def read_current_user(current_user: User = Depends(get_current_active_user)):
     return current_user
+
+# URL For adding a new application, handle POST request sending json
+@app.post("/applications/")
+async def create_application(application: dict):
+    id = applicationDataManager.insert(application)
+    return {id: id}
