@@ -149,3 +149,40 @@ async def read_current_user(current_user: User = Depends(get_current_active_user
 async def create_application(application: dict):
     id = applicationDataManager.insert(application)
     return {id: id}
+
+# URL for getting the list of all applications
+@app.get("/applications/")
+async def read_applications(
+        current_user: User = Depends(get_current_active_user)
+):
+    applications = applicationDataManager.getCollection()
+    return {"data": applications, "count": len(applications)}
+
+# URL for updating an application
+@app.put("/applications/")
+async def update_application(application: dict):
+    id = applicationDataManager.update(application)
+    return {id: id}
+
+# URL for deleting an application
+@app.delete("/applications/{id}")
+async def delete_application(
+        id: int,
+        current_user: User = Depends(get_current_active_user)
+):
+    applicationDataManager.delete(id)
+    return {id: id}
+
+# URL for getting CSV file of all applications
+from fastapi.responses import PlainTextResponse
+
+@app.get("/applications/export")
+async def export_applications(
+        current_user: User = Depends(get_current_active_user),
+        response_class=PlainTextResponse
+):
+    file_name = applicationDataManager.exportCSV()
+    data = open(file_name, 'r').read()
+    response = PlainTextResponse(content=data)
+    response.headers["Content-Disposition"] = f"attachment; filename={file_name}"
+    return response
