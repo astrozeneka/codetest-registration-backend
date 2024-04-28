@@ -36,6 +36,25 @@ class ApplicationDataManager:
             })
         return output
 
+    def getById(self, id):
+        self.connection = sqlite3.connect(os.getenv('DB_PATH') or 'db.sqlite3')
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * FROM applications WHERE id=?", (id,))
+        row = cursor.fetchone()
+        if row is None:
+            return None
+        return {
+            'id': row[0],
+            'firstname': row[1],
+            'lastname': row[2],
+            'email': row[3],
+            'phone': row[4],
+            'address': row[5],
+            'expected_salary': row[6],
+            'create_date': row[7],
+            'resume': row[8]
+        }
+
     def insert(self, application):
         self.connection = sqlite3.connect(os.getenv('DB_PATH') or 'db.sqlite3')
         cursor = self.connection.cursor()

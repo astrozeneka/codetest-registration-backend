@@ -7,9 +7,10 @@ from pydantic import BaseModel
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import UploadFile, File
 import os
 from ApplicationDataManager import ApplicationDataManager
-
+import pandas as pd
 
 SECRET_KEY = "7ce3d09fb5e0eaa0c3e6769930c310ae0cc34276545a761c3fdc923aa04beca5"
 ALGORITHM = "HS256"
@@ -186,3 +187,28 @@ async def export_applications(
     response = PlainTextResponse(content=data)
     response.headers["Content-Disposition"] = f"attachment; filename={file_name}"
     return response
+
+
+@app.post("/applications/import")
+async def import_applications(
+        current_user: User = Depends(get_current_active_user),
+        data: dict = {}
+):
+    csv_content = data['content']
+    with open('tmp/temp.csv', 'w') as f:
+        f.write(csv_content)
+    df = pd.read_csv('tmp/temp.csv')
+    rows_updated = 0
+    rows_inserted = 0
+    for index, row in df.iterrows():
+        id = row.get('id')
+        # Check if id is in database
+        if applicationDataManager.getById(id):
+            applicationDataManager.update(row)
+            rows_updated += 1
+        else:
+            applicationDataManager.insert(row)
+            rows_inserted += 1
+    return {"rows_updated": rows_updated, "rows_inserted": rows_inserted}
+
+
