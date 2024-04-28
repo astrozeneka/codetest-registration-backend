@@ -67,8 +67,16 @@ class ApplicationDataManager:
     def update(self, application):
         self.connection = sqlite3.connect(os.getenv('DB_PATH') or 'db.sqlite3')
         cursor = self.connection.cursor()
-        application = (application['firstname'], application['lastname'], application['email'], application['phone'], application['address'], application['expected_salary'], application['resume'], application['id'])
-        cursor.execute("UPDATE applications SET firstname=?, lastname=?, email=?, phone=?, address=?, expected_salary=?, resume=? WHERE id=?", application)
+        application = (application['firstname'], application['lastname'], application['email'], application['phone'], application['address'], application['expected_salary'], application['id'])
+        cursor.execute("UPDATE applications SET firstname=?, lastname=?, email=?, phone=?, address=?, expected_salary=? WHERE id=?", application)
+        self.connection.commit()
+        return cursor.lastrowid
+
+    def updateResume(self, application):
+        self.connection = sqlite3.connect(os.getenv('DB_PATH') or 'db.sqlite3')
+        cursor = self.connection.cursor()
+        application = (application['resume'], application['id'])
+        cursor.execute("UPDATE applications SET resume=? WHERE id=?", application)
         self.connection.commit()
         return cursor.lastrowid
 

@@ -151,14 +151,16 @@ async def read_current_user(current_user: User = Depends(get_current_active_user
 # URL For adding a new application, handle POST request sending json
 @app.post("/applications/")
 async def create_application(application: dict):
-    resumeBase64 = application.get('resumeBase64')
-    resumeFilename = application.get('resume')
-    ## put user identifier to the file name
-    uuid = application.get('email').split('@')[0]
-    with open(f'uploads/{uuid}-{resumeFilename}', 'wb') as f:
-        file_content = base64.b64decode(resumeBase64[resumeBase64.index(',')+1:])
-        f.write(file_content)
-    application['resume'] = f'uploads/{uuid}-{resumeFilename}'
+    # Check if a file is uploaded
+    if application.get('resumeBase64'):
+        resumeBase64 = application.get('resumeBase64')
+        resumeFilename = application.get('resume')
+        ## put user identifier to the file name
+        uuid = application.get('email').split('@')[0]
+        with open(f'uploads/{uuid}-{resumeFilename}', 'wb') as f:
+            file_content = base64.b64decode(resumeBase64[resumeBase64.index(',')+1:])
+            f.write(file_content)
+        application['resume'] = f'uploads/{uuid}-{resumeFilename}'
     id = applicationDataManager.insert(application)
     return {id: id}
 
@@ -173,7 +175,19 @@ async def read_applications(
 # URL for updating an application
 @app.put("/applications/")
 async def update_application(application: dict):
+    # Update the item
     id = applicationDataManager.update(application)
+    # Check if a file is uploaded
+    if application.get('resumeBase64'):
+        resumeBase64 = application.get('resumeBase64')
+        resumeFilename = application.get('resume')
+        ## put user identifier to the file name
+        uuid = application.get('email').split('@')[0]
+        with open(f'uploads/{uuid}-{resumeFilename}', 'wb') as f:
+            file_content = base64.b64decode(resumeBase64[resumeBase64.index(',')+1:])
+            f.write(file_content)
+        application['resume'] = f'uploads/{uuid}-{resumeFilename}'
+        id = applicationDataManager.updateResume(application)
     return {id: id}
 
 # URL for deleting an application
