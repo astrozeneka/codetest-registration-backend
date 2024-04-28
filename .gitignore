@@ -5,3 +5,6 @@ __pycache__/**/*
 .idea/**/*
 *.sqlite3
 .env
+tmp/*
+uploads/*
+*.csv

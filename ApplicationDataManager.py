@@ -59,7 +59,6 @@ class ApplicationDataManager:
         self.connection = sqlite3.connect(os.getenv('DB_PATH') or 'db.sqlite3')
         cursor = self.connection.cursor()
         application['create_date'] = 'now'
-        application['resume'] = '' # TODO: make it later
         application = (application['firstname'], application['lastname'], application['email'], application['phone'], application['address'], application['expected_salary'], application['create_date'], application['resume'])
         cursor.execute("INSERT INTO applications (firstname, lastname, email, phone, address, expected_salary, create_date, resume) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", application)
         self.connection.commit()

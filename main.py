@@ -1,4 +1,6 @@
+import base64
 import sqlite3
+from hashlib import md5
 from http.client import HTTPException
 from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
@@ -8,6 +10,7 @@ from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import UploadFile, File
+from fastapi.responses import FileResponse
 import os
 from ApplicationDataManager import ApplicationDataManager
 import pandas as pd
@@ -148,6 +151,14 @@ async def read_current_user(current_user: User = Depends(get_current_active_user
 # URL For adding a new application, handle POST request sending json
 @app.post("/applications/")
 async def create_application(application: dict):
+    resumeBase64 = application.get('resumeBase64')
+    resumeFilename = application.get('resume')
+    ## put user identifier to the file name
+    uuid = application.get('email').split('@')[0]
+    with open(f'uploads/{uuid}-{resumeFilename}', 'wb') as f:
+        file_content = base64.b64decode(resumeBase64[resumeBase64.index(',')+1:])
+        f.write(file_content)
+    application['resume'] = f'uploads/{uuid}-{resumeFilename}'
     id = applicationDataManager.insert(application)
     return {id: id}
 
@@ -211,4 +222,7 @@ async def import_applications(
             rows_inserted += 1
     return {"rows_updated": rows_updated, "rows_inserted": rows_inserted}
 
-
+# Download uploaded data /uploads/<filename>
+@app.get("/uploads/{filename}")
+async def download_file(filename: str):
+    return FileResponse(f"uploads/{filename}")
